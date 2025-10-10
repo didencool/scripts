@@ -1,0 +1,7 @@
+# Наші тестові джерела новин (RSS-стрічки)
+NEWS_SOURCES = [
+    "https://www.reuters.com/arc/outboundfeeds/rss/?outputType=xml", # Міжнародні
+    "https://www.unian.ua/rss/news", # Українські
+    "https://www.bbc.com/news/world/rss.xml", # Англомовні міжнародні
+    # Можна додати ще багато інших
+]
