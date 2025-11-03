@@ -1,82 +1,105 @@
 import feedparser
 from typing import List, Dict
+from langdetect import detect
+from transformers import pipeline
 
 # ==========================================================
-# ГЛОБАЛЬНІ ПАРАМЕТРИ
+# 1. ІНІЦІАЛІЗАЦІЯ МОДЕЛЕЙ
 # ==========================================================
-SOURCES_FILE = "newsfeed.txt"
-NEWS_LIMIT = 75
+
+# Модель для англійської -> української
+EN_UK_TRANSLATOR = pipeline(
+    "translation", 
+    model="Helsinki-NLP/opus-mt-en-uk"
+)
+# Модель для російської -> української
+RU_UK_TRANSLATOR = pipeline(
+    "translation", 
+    model="Helsinki-NLP/opus-mt-ru-uk" 
+)
+
 # ==========================================================
-# ... ініціалізація моделей ...
+# 2. ФУНКЦІЇ ДЕТЕКТУВАННЯ ТА ПЕРЕКЛАДУ (Перевірте, чи є вони у вашому коді)
+# ==========================================================
 
-
-# Функція для завантаження джерел залишається без змін
-def load_sources(file_path: str) -> List[str]:
-    """Зчитує список RSS-стрічок з текстового файлу."""
-    sources = []
+def detect_language(text: str) -> str:
+    # ... (функція detect_language з langdetect) ...
+    if not text:
+        return 'unknown'
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
-            for line in f:
-                line = line.strip()
-                if line and not line.startswith('#'):
-                    sources.append(line)
-    except FileNotFoundError:
-        print(f"Помилка: Файл джерел '{file_path}' не знайдено.")
-        return []
+        from langdetect import detect
+        return detect(text[:200])
+    except:
+        return 'unknown'
 
-    return sources
 
-def fetch_news(sources: List[str]) -> List[Dict]:
-    """Збирає заголовки та посилання з усіх визначених RSS-стрічок, з розширеною обробкою."""
-    all_news = []
+def translate_to_uk(text: str, lang_code: str) -> str:
+    """Використовує відповідну модель для перекладу на українську."""
+    
+    if lang_code == 'uk':
+        return text  # Якщо вже українська, повертаємо оригінал
+    
+    try:
+        if lang_code == 'en':
+            translator = EN_UK_TRANSLATOR
+            
+        elif lang_code == 'ru':
+            translator = RU_UK_TRANSLATOR
+            
+        else:
+            # Для непідтримуваних мов (наприклад, de, fr)
+            return f"[Не перекладено з {lang_code}: {text}]"
 
-    print(f"Розпочато збір новин з {len(sources)} джерел...")
+        # Виконуємо переклад
+        result = translator(text, max_length=150)
+        return result[0]['translation_text']
+        
+    except Exception as e:
+        print(f"Помилка перекладу {lang_code}->UK: {e}")
+        return f"[Помилка перекладу: {text}]"
 
-    for url in sources:
-        try:
-            feed = feedparser.parse(url)
-            count_fetched = 0
 
-            # Перевірка, чи feedparser успішно обробив стрічку
-            if not feed.entries:
-                print(f"  [Попередження] Джерело {url}: не знайдено жодної 'entry'. Можливо, помилка парсингу.")
-                continue
+def process_and_translate_news(collected_articles: List[Dict]) -> List[Dict]:
+    """Визначає мову, перекладає на українську і додає нове поле 'ukr_title'."""
+    print(f"\nРозпочато визначення мови та переклад для {len(collected_articles)} новин...")
+    translated_news = []
+    
+    for i, article in enumerate(collected_articles):
+        title = article.get('title', '')
+        
+        lang_code = detect_language(title)
+        article['lang'] = lang_code
+        
+        ukr_title = translate_to_uk(title, lang_code)
+        article['ukr_title'] = ukr_title
+        
+        translated_news.append(article)
+        
+        if (i + 1) % 25 == 0:
+            print(f"  Прогрес: оброблено {i+1} новин...")
+            
+    return translated_news
 
-            for entry in feed.entries[:25]: # Обмежуємося останніми 25 новинами
+# ==========================================================
+# 3. БЛОК ЗАПУСКУ
+# ==========================================================
 
-                # Забезпечення наявності основних полів (title та link)
-                title = getattr(entry, 'title', None)
-                link = getattr(entry, 'link', None)
-                published = getattr(entry, 'published', 'N/A')
-
-                if title and link:
-                    all_news.append({
-                        'title': title,
-                        'link': link,
-                        'published': published,
-                        'source': url
-                    })
-                    count_fetched += 1
-
-            print(f"  [Успіх] З джерела {url} зібрано {count_fetched} новин.")
-
-        except Exception as e:
-            # Це відобразить будь-які інші непередбачені помилки
-            print(f"  [Критична Помилка] Непередбачена помилка при обробці {url}: {e}")
-            continue
-
-    return all_news
-
-# --- Запуск ---
 if __name__ == "__main__":
+    # ... [Код load_sources та fetch_news має бути тут] ...
+
+    # Припустимо, NEWS_LIMIT визначено на початку файлу
+    
+    # 1. Завантаження та збір
     NEWS_SOURCES = load_sources(SOURCES_FILE)
-
     if NEWS_SOURCES:
-        collected_articles = fetch_news(NEWS_SOURCES)
-        print(f"\nЗагалом зібрано {len(collected_articles)} новин.")
-
-        print("\nПерші 5 зібраних новин:")
-        for i, article in enumerate(collected_articles[:NEWS_LIMIT]):
+        collected_articles = fetch_news(NEWS_SOURCES, NEWS_LIMIT)
+        
+        # 2. Запуск визначення мови та перекладу
+        translated_results = process_and_translate_news(collected_articles)
+        
+        # 3. Вивід прикладів з перекладом
+        print(f"\nПриклади {NEWS_LIMIT} новин з перекладом:")
+        for i, article in enumerate(translated_results[:NEWS_LIMIT]):
             print(f"--- Новина {i+1} ---")
-            print(f"Джерело: {article['source'][:40]}...") # Обмежимо довжину URL
-            print(f"Заголовок: {article['title']}")
+            print(f"  Оригінал [{article['lang']}]: {article['title']}")
+            print(f"  Переклад [uk]: {article['ukr_title']}")
