@@ -1,5 +1,3 @@
-%%writefile nlp_processor.py
-
 from langdetect import detect
 from typing import List, Dict
 

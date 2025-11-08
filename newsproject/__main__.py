@@ -1,5 +1,3 @@
-!pip install feedparser transformers sentencepiece langdetect requests beautifulsoup4
-
 # ==========================================================
 # 1. ІМПОРТ МОДУЛІВ
 # ==========================================================
