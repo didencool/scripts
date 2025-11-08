@@ -21,7 +21,7 @@ def fetch_news(rss_sources: List[str], limit_per_source: int) -> List[Dict]:
             feed = feedparser.parse(url)
             print(f"Збір новин з: {url[:60]}...")
 
-            for entry in feed.ent ries[:limit_per_source]:
+            for entry in feed.entries[:limit_per_source]:
                 article = {
                     'title': entry.get('title', 'N/A'),
                     'link': entry.get('link', 'N/A'),
