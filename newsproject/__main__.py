@@ -33,7 +33,7 @@ if __name__ == "__main__":
 # 2. КОНФІГУРАЦІЯ
 # ==========================================================
 # ЗМІНІТЬ ЦЕЙ ШЛЯХ на ваш реальний!
-SOURCES_FILE = "/content/drive/MyDrive/Colab Notebooks/newsrssreader/newsfeed.txt"
+SOURCES_FILE = "/content/scripts/newsproject/newsfeed.txt"
 NEWS_LIMIT = 5 # Кількість новин на одне джерело
 
 def process_and_analyze_news(articles: List[Dict]) -> List[Dict]:
