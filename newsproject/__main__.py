@@ -1,11 +1,3 @@
-# ==========================================================
-# 1. ІМПОРТ МОДУЛІВ
-# ==========================================================
-
-#from data_loader import load_sources, fetch_news # ТЕПЕР ПРАЦЮЄ
-#from nlp_processor import translate_to_uk, detect_language
-#from typing import List, Dict
-
 # =======================================================
 # АДАПТИВНИЙ ІМПОРТ: дозволяє запускати як модуль (-m) або як скрипт
 # =======================================================
@@ -13,40 +5,33 @@ if __name__ == "__main__" and __package__ is None:
     # Запуск як звичайний скрипт (наприклад, python __main__.py)
     # Ми тут використовуємо абсолютний імпорт (як це було у вас)
     from data_loader import load_sources, fetch_news
-    from nlp_processor import translate_to_uk, detect_language
+    from nlp_processor import translate_and_summarize
     from typing import List, Dict
 else:
     # Запуск як модуль/пакет (наприклад, python -m scripts.newsproject)
     # Тут потрібен відносний імпорт
     from .data_loader import load_sources, fetch_news
-    from .nlp_processor import translate_to_uk, detect_language
+    from .nlp_processor import translate_and_summarize
     from typing import List, Dict
 # =======================================================
-
-# Ваш основний код, який використовує load_sources і fetch_news
-if __name__ == "__main__":
-    # ... тут ваш основний код програми ...
-    print("Код newsproject успішно запущено!")
-    # ...
-
+    
 # ==========================================================
 # 2. КОНФІГУРАЦІЯ
 # ==========================================================
-# ЗМІНІТЬ ЦЕЙ ШЛЯХ на ваш реальний!
 SOURCES_FILE = "/content/scripts/newsproject/newsfeed.txt"
 NEWS_LIMIT = 5 # Кількість новин на одне джерело
 
 def process_and_analyze_news(articles: List[Dict]) -> List[Dict]:
-    """Головний цикл обробки: переклад."""
+    """Головний цикл обробки: генерація заголовків та переклад."""
     processed_articles = []
-    print(f"\nРозпочато обробку {len(articles)} новин...")
+    print(f"\nРозпочато обробку {len(articles)} новин (генерація/переклад)...")
 
     for article in articles:
-        translated_article = translate_to_uk(article)
+        # Викликаємо функцію, яка виконує і генерацію, і переклад
+        translated_article = translate_and_summarize(article) 
         processed_articles.append(translated_article)
 
     return processed_articles
-
 
 if __name__ == "__main__":
 
