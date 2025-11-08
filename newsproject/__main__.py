@@ -2,9 +2,32 @@
 # 1. ІМПОРТ МОДУЛІВ
 # ==========================================================
 
-from data_loader import load_sources, fetch_news # ТЕПЕР ПРАЦЮЄ
-from nlp_processor import translate_to_uk, detect_language
-from typing import List, Dict
+#from data_loader import load_sources, fetch_news # ТЕПЕР ПРАЦЮЄ
+#from nlp_processor import translate_to_uk, detect_language
+#from typing import List, Dict
+
+# =======================================================
+# АДАПТИВНИЙ ІМПОРТ: дозволяє запускати як модуль (-m) або як скрипт
+# =======================================================
+if __name__ == "__main__" and __package__ is None:
+    # Запуск як звичайний скрипт (наприклад, python __main__.py)
+    # Ми тут використовуємо абсолютний імпорт (як це було у вас)
+    from data_loader import load_sources, fetch_news
+    from nlp_processor import translate_to_uk, detect_language
+    from typing import List, Dict
+else:
+    # Запуск як модуль/пакет (наприклад, python -m scripts.newsproject)
+    # Тут потрібен відносний імпорт
+    from .data_loader import load_sources, fetch_news
+    from .nlp_processor import translate_to_uk, detect_language
+    from typing import List, Dict
+# =======================================================
+
+# Ваш основний код, який використовує load_sources і fetch_news
+if __name__ == "__main__":
+    # ... тут ваш основний код програми ...
+    print("Код newsproject успішно запущено!")
+    # ...
 
 # ==========================================================
 # 2. КОНФІГУРАЦІЯ
